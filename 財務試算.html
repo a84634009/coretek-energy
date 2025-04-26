@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儲能+充電樁商業模式財務試算表 (專業版)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            height: 60px;
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+        }
+        .input-section {
+            width: 30%;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #e6f7ff;
+            height: fit-content;
+        }
+        .output-section {
+            width: 68%;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: right;
+        }
+        th {
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+        .input-cell {
+            background-color: #ffffcc;
+            width: 80px;
+            padding: 4px;
+        }
+        .calc-cell {
+            background-color: #e6ffe6;
+        }
+        .output-cell {
+            background-color: #ffe6e6;
+        }
+        button {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 5px;
+            font-size: 1.2em;
+        }
+        .key-metrics {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .metric {
+            margin: 4px 0;
+        }
+        .positive {
+            color: #008000;
+            font-weight: bold;
+        }
+        .negative {
+            color: #ff0000;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            text-align: right;
+            padding: 4px;
+            width: 80px;
+        }
+        .sensitivity-container {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .scrollable-table {
+            max-height: 300px;
+            overflow-y: auto;
+            display: block;
+        }
+        .output-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .output-block {
+            width: 100%;
+        }
+        .password-modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .password-input {
+            margin: 15px 0;
+            padding: 8px;
+            width: 80%;
+        }
+        .error-message {
+            color: red;
+            margin: 10px 0;
+            display: none;
+        }
+        .scenario-selector {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            border-radius: 4px;
+        }
+        .section-header {
+            background-color: #e6f7ff;
+            padding: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .info-icon {
+            cursor: help;
+            color: #4CAF50;
+            margin-left: 5px;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 密碼輸入模態框 -->
+    <div id="passwordModal" class="password-modal">
+        <div class="modal-content">
+            <h2>請輸入密碼</h2>
+            <input type="password" id="passwordInput" class="password-input" placeholder="輸入密碼">
+            <p id="errorMessage" class="error-message">密碼錯誤，請重新輸入</p>
+            <button onclick="checkPassword()">確認</button>
+        </div>
+    </div>
+
+    <div id="mainContent" style="display:none;">
+        <div class="header-container">
+            <h1>儲能+充電樁商業模式財務試算表 (專業版)</h1>
+        </div>
+        
+        <div class="main-container">
+            <!-- 左側1/3：輸入參數 -->
+            <div class="input-section">
+                <h2>輸入參數</h2>
+                
+                <!-- 情境選擇器 -->
+                <div>
+                    <label for="scenarioSelector">選擇預設情境：</label>
+                    <select id="scenarioSelector" class="scenario-selector" onchange="loadScenario()">
+                        <option value="custom">自訂參數</option>
+                        <option value="conservative">保守情境</option>
+                        <option value="moderate">中性情境</option>
+                        <option value="optimistic">樂觀情境</option>
+                    </select>
+                </div>
+                
+                <!-- 設備投資參數 -->
+                <div class="section-header">設備投資參數</div>
+                <table>
+                    <tr>
+                        <th>參數</th>
+                        <th>數值</th>
+                        <th>單位</th>
+                    </tr>
+                    <tr>
+                        <td>儲能櫃成本 <span class="tooltip info-icon">ⓘ<span class="tooltiptext">市場價格範圍：8,000-12,000元/kWh</span></span></td>
+                        <td><input type="number" id="storage_cost" class="input-cell" value="2600000"></td>
+                        <td>元</td>
+                    </tr>
+                    <tr>
+                        <td>快充樁成本</td>
+                        <td><input type="number" id="charger_cost" class="input-cell" value="1100000"></td>
+                        <td>元</td>
+                    </tr>
+                    <tr>
+                        <td>充電樁數量</td>
+                        <td><input type="number" id="charger_count" class="input-cell" value="2"></td>
+                        <td>座</td>
+                    </tr>
+                    <tr>
+                        <td>儲能容量</td>
+                        <td><input type="number" id="storage_capacity" class="input-cell" value="261"></td>
+                        <td>kWh</td>
+                    </tr>
+                </table>
+                
+                <!-- 融資參數 -->
+                <div class="section-header">融資參數</div>
+                <table>
+                    <tr>
+                        <th>參數</th>
+                        <th>數值</th>
+                        <th>單位</th>
+                    </tr>
+                    <tr>
+                        <td>融資利率</td>
+                        <td><input type="number" id="loan_rate" class="input-cell" value="5" step="0.1"></td>
+                        <td>%</td>
+                    </tr>
+                    <tr>
+                        <td>貸款年限</td>
+                        <td><input type="number" id="loan_years" class="input-cell" value="5"></td>
+                        <td>年</td>
+                    </tr>
+                    <tr>
+                        <td>自備款比例</td>
+                        <td><input type="number" id="down_payment_rate" class="input-cell" value="20" step="5"></td>
+                        <td>%</td>
+                    </tr>
+                </table>
+                
+                <!-- 收入參數 -->
+                <div class="section-header">收入參數</div>
+                <table>
+                    <tr>
+                        <th>參數</th>
+                        <th>數值</th>
+                        <th>單位</th>
+                    </tr>
+                    <tr>
+                        <td>每日充電量</td>
+                        <td><input type="number" id="daily_charge" class="input-cell" value="240"></td>
+                        <td>度</td>
+                    </tr>
+                    <tr>
+                        <td>充電服務費</td>
+                        <td><input type="number" id="charge_fee" class="input-cell" value="7" step="0.1"></td>
+                        <td>元/度</td>
+                    </tr>
+                    <tr>
+                        <td>停車費</td>
+                        <td><input type="number" id="parking_fee" class="input-cell" value="40"></td>
+                        <td>元/小時</td>
+                    </tr>
+                    <tr>
+                        <td>每日停車車次</td>
+                        <td><input type="number" id="daily_parking" class="input-cell" value="40"></td>
+                        <td>次</td>
+                    </tr>
+                    <tr>
+                        <td>平均停留時間</td>
+                        <td><input type="number" id="parking_hours" class="input-cell" value="2"></td>
+                        <td>小時</td>
+                    </tr>
+                    <tr>
+                        <td>離峰電價</td>
+                        <td><input type="number" id="offpeak_price" class="input-cell" value="2.05" step="0.01"></td>
+                        <td>元/度</td>
+                    </tr>
+                    <tr>
+                        <td>尖峰電價</td>
+                        <td><input type="number" id="peak_price" class="input-cell" value="8.35" step="0.01"></td>
+                        <td>元/度</td>
+                    </tr>
+                    <tr>
+                        <td>儲能效率</td>
+                        <td><input type="number" id="storage_efficiency" class="input-cell" value="85" step="1"></td>
+                        <td>%</td>
+                    </tr>
+                    <tr>
+                        <td>營運天數/年</td>
+                        <td><input type="number" id="operating_days" class="input-cell" value="330"></td>
+                        <td>天</td>
+                    </tr>
+                    <tr>
+                        <td>年收入成長率</td>
+                        <td><input type="number" id="revenue_growth" class="input-cell" value="3" step="0.5"></td>
+                        <td>%</td>
+                    </tr>
+                </table>
+                
+                <!-- 成本參數 -->
+                <div class="section-header">成本參數</div>
+                <table>
+                    <tr>
+                        <th>參數</th>
+                        <th>數值</th>
+                        <th>單位</th>
+                    </tr>
+                    <tr>
+                        <td>設備維護費率</td>
+                        <td><input type="number" id="maintenance_rate" class="input-cell" value="3" step="0.5"></td>
+                        <td>%</td>
+                    </tr>
+                    <tr>
+                        <td>人力成本/年</td>
+                        <td><input type="number" id="labor_cost" class="input-cell" value="600000"></td>
+                        <td>元</td>
+                    </tr>
+                    <tr>
+                        <td>場地租金/年</td>
+                        <td><input type="number" id="rent_cost" class="input-cell" value="360000"></td>
+                        <td>元</td>
+                    </tr>
+                    <tr>
+                        <td>保險費率</td>
+                        <td><input type="number" id="insurance_rate" class="input-cell" value="1" step="0.1"></td>
+                        <td>%</td>
+                    </tr>
+                    <tr>
+                        <td>其他營運成本/年</td>
+                        <td><input type="number" id="other_cost" class="input-cell" value="120000"></td>
+                        <td>元</td>
+                    </tr>
+                    <tr>
+                        <td>年成本增長率</td>
+                        <td><input type="number" id="cost_growth" class="input-cell" value="2" step="0.5"></td>
+                        <td>%</td>
+                    </tr>
+                </table>
+                
+                <!-- 其他參數 -->
+                <div class="section-header">其他參數</div>
+                <table>
+                    <tr>
+                        <th>參數</th>
+                        <th>數值</th>
+                        <th>單位</th>
+                    </tr>
+                    <tr>
+                        <td>營所稅率</td>
+                        <td><input type="number" id="tax_rate" class="input-cell" value="20" step="0.1"></td>
+                        <td>%</td>
+                    </tr>
+                    <tr>
+                        <td>折現率</td>
+                        <td><input type="number" id="discount_rate" class="input-cell" value="8" step="0.1"></td>
+                        <td>%</td>
+                    </tr>
+                    <tr>
+                        <td>設備殘值率</td>
+                        <td><input type="number" id="residual_rate" class="input-cell" value="20" step="0.1"></td>
+                        <td>%</td>
+                    </tr>
+                </table>
+                <button onclick="calculate()">重新計算</button>
+
+                <div class="sensitivity-container">
+                    <h2>敏感度分析</h2>
+                    <table>
+                        <tr>
+                            <th>變數</th>
+                            <th>最小值</th>
+                            <th>基準值</th>
+                            <th>最大值</th>
+                        </tr>
+                        <tr>
+                            <td>充電使用率(%)</td>
+                            <td><input type="number" id="usage_min" class="input-cell" value="50"></td>
+                            <td><input type="number" id="usage_base" class="input-cell" value="80"></td>
+                            <td><input type="number" id="usage_max" class="input-cell" value="100"></td>
+                        </tr>
+                        <tr>
+                            <td>電價差(元/度)</td>
+                            <td><input type="number" id="price_diff_min" class="input-cell" value="4" step="0.1"></td>
+                            <td><input type="number" id="price_diff_base" class="input-cell" value="6.3" step="0.1"></td>
+                            <td><input type="number" id="price_diff_max" class="input-cell" value="8" step="0.1"></td>
+                        </tr>
+                    </table>
+                    <button onclick="runSensitivityAnalysis()">執行敏感度分析</button>
+                </div>
+            </div>
+            
+            <!-- 右側2/3：分析結果 -->
+            <div class="output-section">
+                <!-- 第一部分：現金流分析 -->
+                <div class="output-block">
+                    <h2>現金流分析 (5年)</h2>
+                    <div class="scrollable-table">
+                        <table id="cashflow_table">
+                            <tr>
+                                <th>年度</th>
+                                <th>充電收入</th>
+                                <th>停車收入</th>
+                                <th>儲能收益</th>
+                                <th>總收入</th>
+                                <th>電費成本</th>
+                                <th>維護成本</th>
+                                <th>人力成本</th>
+                                <th>其他成本</th>
+                                <th>貸款還款</th>
+                                <th>稅前淨利</th>
+                                <th>稅額</th>
+                                <th>稅後淨利</th>
+                            </tr>
+                            <!-- 將由JavaScript動態生成 -->
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 第二部分：折現現金流分析 -->
+                <div class="output-block">
+                    <h2>折現現金流分析</h2>
+                    <div class="scrollable-table">
+                        <table id="dcf_table">
+                            <tr>
+                                <th>年度</th>
+                                <th>稅後淨利</th>
+                                <th>設備殘值</th>
+                                <th>淨現金流</th>
+                                <th>折現因子</th>
+                                <th>現值(PV)</th>
+                                <th>累計現值</th>
+                            </tr>
+                            <!-- 將由JavaScript動態生成 -->
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 第三部分：貸款攤還計劃 -->
+                <div class="output-block">
+                    <h2>貸款攤還計劃</h2>
+                    <div class="scrollable-table">
+                        <table id="loan_table">
+                            <tr>
+                                <th>年度</th>
+                                <th>期初餘額</th>
+                                <th>年付款額</th>
+                                <th>利息</th>
+                                <th>本金</th>
+                                <th>期末餘額</th>
+                            </tr>
+                            <!-- 將由JavaScript動態生成 -->
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 第四部分：關鍵指標 -->
+                <div class="output-block">
+                    <div class="key-metrics">
+                        <h3>關鍵指標</h3>
+                        <p class="metric" id="total_investment">總投資額: </p>
+                        <p class="metric" id="down_payment">自備款: </p>
+                        <p class="metric" id="loan_amount">貸款金額: </p>
+                        <p class="metric" id="total_profit">5年總利潤: </p>
+                        <p class="metric" id="npv_output">淨現值(NPV): </p>
+                        <p class="metric" id="irr_output">內部報酬率(IRR): </p>
+                        <p class="metric" id="payback_output">投資回收期: </p>
+                        <p class="metric" id="roi_output">投資報酬率(ROI): </p>
+                    </div>
+                </div>
+                
+                <!-- 圖表部分 -->
+                <div class="output-block">
+                    <div class="chart-container">
+                        <canvas id="profitChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="output-block">
+                    <div class="chart-container">
+                        <canvas id="costBreakdownChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="output-block">
+                    <div class="chart-container">
+                        <canvas id="sensitivityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局變量存儲圖表實例
+        let profitChart = null;
+        let costBreakdownChart = null;
+        let sensitivityChart = null;
+        
+        // 預設密碼
+        const DEFAULT_PASSWORD = '0982';
+        
+        // 頁面載入時顯示密碼輸入框
+        window.onload = function() {
+            document.getElementById('passwordModal').style.display = 'block';
+            
+            // 為密碼輸入框添加Enter鍵事件
+            document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+        };
+        
+        // 檢查密碼
+        function checkPassword() {
+            const passwordInput = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (passwordInput === DEFAULT_PASSWORD) {
+                document.getElementById('passwordModal').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                setupAutocalculate();
+                calculate();
+            } else {
+                errorMessage.style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+        
+        // 預設情境
+        const scenarios = {
+            conservative: {
+                storage_cost: 2600000,
+                charger_cost: 1100000,
+                charger_count: 2,
+                storage_capacity: 261,
+                loan_rate: 5.5,
+                loan_years: 5,
+                down_payment_rate: 30,
+                daily_charge: 180,
+                charge_fee: 6,
+                parking_fee: 35,
+                daily_parking: 30,
+                parking_hours: 1.5,
+                offpeak_price: 2.05,
+                peak_price: 8.35,
+                storage_efficiency: 80,
+                operating_days: 330,
+                revenue_growth: 2,
+                maintenance_rate: 4,
+                labor_cost: 720000,
+                rent_cost: 420000,
+                insurance_rate: 1.5,
+                other_cost: 150000,
+                cost_growth: 3,
+                tax_rate: 20,
+                discount_rate: 10,
+                residual_rate: 15
+            },
+            moderate: {
+                storage_cost: 2600000,
+                charger_cost: 1100000,
+                charger_count: 2,
+                storage_capacity: 261,
+                loan_rate: 5,
+                loan_years: 5,
+                down_payment_rate: 20,
+                daily_charge: 240,
+                charge_fee: 7,
+                parking_fee: 40,
+                daily_parking: 40,
+                parking_hours: 2,
+                offpeak_price: 2.05,
+                peak_price: 8.35,
+                storage_efficiency: 85,
+                operating_days: 330,
+                revenue_growth: 3,
+                maintenance_rate: 3,
+                labor_cost: 600000,
+                rent_cost: 360000,
+                insurance_rate: 1,
+                other_cost: 120000,
+                cost_growth: 2,
+                tax_rate: 20,
+                discount_rate: 8,
+                residual_rate: 20
+            },
+            optimistic: {
+                storage_cost: 2600000,
+                charger_cost: 1100000,
+                charger_count: 3,
+                storage_capacity: 261,
+                loan_rate: 4.5,
+                loan_years: 5,
+                down_payment_rate: 20,
+                daily_charge: 300,
+                charge_fee: 8,
+                parking_fee: 45,
+                daily_parking: 50,
+                parking_hours: 2,
+                offpeak_price: 2.05,
+                peak_price: 8.35,
+                storage_efficiency: 90,
+                operating_days: 330,
+                revenue_growth: 5,
+                maintenance_rate: 2.5,
+                labor_cost: 600000,
+                rent_cost: 360000,
+                insurance_rate: 0.8,
+                other_cost: 100000,
+                cost_growth: 2,
+                tax_rate: 20,
+                discount_rate: 7,
+                residual_rate: 25
+            }
+        };
+        
+        // 載入預設情境
+        function loadScenario() {
+            const scenarioName = document.getElementById('scenarioSelector').value;
+            if (scenarioName === 'custom') return;
+            
+            const scenario = scenarios[scenarioName];
+            for (const [key, value] of Object.entries(scenario)) {
+                if (document.getElementById(key)) {
+                    document.getElementById(key).value = value;
+                }
+            }
+            
+            calculate();
+        }
+        
+        // 計算主函數
+        function calculate() {
+            // 獲取輸入值 - 設備投資參數
+            const storageCost = parseFloat(document.getElementById('storage_cost').value);
+            const chargerCost = parseFloat(document.getElementById('charger_cost').value);
+            const chargerCount = parseInt(document.getElementById('charger_count').value);
+            const storageCapacity = parseFloat(document.getElementById('storage_capacity').value);
+            
+            // 獲取輸入值 - 融資參數
+            const loanRate = parseFloat(document.getElementById('loan_rate').value) / 100;
+            const loanYears = parseInt(document.getElementById('loan_years').value);
+            const downPaymentRate = parseFloat(document.getElementById('down_payment_rate').value) / 100;
+            
+            // 獲取輸入值 - 收入參數
+            const dailyCharge = parseFloat(document.getElementById('daily_charge').value);
+            const chargeFee = parseFloat(document.getElementById('charge_fee').value);
+            const parkingFee = parseFloat(document.getElementById('parking_fee').value);
+            const dailyParking = parseFloat(document.getElementById('daily_parking').value);
+            const parkingHours = parseFloat(document.getElementById('parking_hours').value);
+            const offpeakPrice = parseFloat(document.getElementById('offpeak_price').value);
+            const peakPrice = parseFloat(document.getElementById('peak_price').value);
+            const storageEfficiency = parseFloat(document.getElementById('storage_efficiency').value) / 100;
+            const operatingDays = parseInt(document.getElementById('operating_days').value);
+            const revenueGrowth = parseFloat(document.getElementById('revenue_growth').value) / 100;
+            
+            // 獲取輸入值 - 成本參數
+            const maintenanceRate = parseFloat(document.getElementById('maintenance_rate').value) / 100;
+            const laborCost = parseFloat(document.getElementById('labor_cost').value);
+            const rentCost = parseFloat(document.getElementById('rent_cost').value);
+            const insuranceRate = parseFloat(document.getElementById('insurance_rate').value) / 100;
+            const otherCost = parseFloat(document.getElementById('other_cost').value);
+            const costGrowth = parseFloat(document.getElementById('cost_growth').value) / 100;
+            
+            // 獲取輸入值 - 其他參數
+            const taxRate = parseFloat(document.getElementById('tax_rate').value) / 100;
+            const discountRate = parseFloat(document.getElementById('discount_rate').value) / 100;
+            const residualRate = parseFloat(document.getElementById('residual_rate').value) / 100;
+            
+            // 計算衍生參數
+            const totalChargerCost = chargerCost * chargerCount;
+            const totalInvestment = storageCost + totalChargerCost;
+            const downPayment = totalInvestment * downPaymentRate;
+            const loanAmount = totalInvestment - downPayment;
+            const monthlyPayment = PMT(loanRate/12, loanYears*12, loanAmount);
+            const annualPayment = monthlyPayment * 12;
+            const priceDiff = peakPrice - offpeakPrice;
+            
+            // 更新總投資顯示
+            document.getElementById('total_investment').textContent = `總投資額: ${formatCurrency(totalInvestment)}`;
+            document.getElementById('down_payment').textContent = `自備款: ${formatCurrency(downPayment)}`;
+            document.getElementById('loan_amount').textContent = `貸款金額: ${formatCurrency(loanAmount)}`;
+            
+            // 初始化現金流表
+            const cashflowTable = document.getElementById('cashflow_table');
+            // 清空表格（保留標題行）
+            while (cashflowTable.rows.length > 1) {
+                cashflowTable.deleteRow(1);
+            }
+            
+            // 初始化DCF表
+            const dcfTable = document.getElementById('dcf_table');
+            while (dcfTable.rows.length > 1) {
+                dcfTable.deleteRow(1);
+            }
+            
+            // 初始化貸款攤還表
+            const loanTable = document.getElementById('loan_table');
+            while (loanTable.rows.length > 1) {
+                loanTable.deleteRow(1);
+            }
+            
+            // 初始化數據用於圖表
+            const years = [1, 2, 3, 4, 5];
+            const chargeIncomes = [];
+            const parkingIncomes = [];
+            const storageIncomes = [];
+            const totalIncomes = [];
+            const electricityCosts = [];
+            const maintenanceCosts = [];
+            const laborCosts = [];
+            const otherCosts = [];
+            const loanPayments = [];
+            const netProfits = [];
+            const pvs = [];
+            
+            let cumulativeCashflow = -downPayment; // 初始投資為自備款
+            let paybackYear = 0;
+            let paybackFound = false;
+            let totalProfit = 0;
+            
+            // 計算貸款攤還計劃
+            let loanBalance = loanAmount;
+            for (let year = 1; year <= loanYears; year++) {
+                const yearlyInterest = loanBalance * loanRate;
+                const yearlyPrincipal = annualPayment - yearlyInterest;
+                const endBalance = loanBalance - yearlyPrincipal;
+                
+                // 添加到貸款攤還表
+                const loanRow = loanTable.insertRow();
+                loanRow.insertCell(0).textContent = year;
+                loanRow.insertCell(1).textContent = formatCurrency(loanBalance);
+                loanRow.insertCell(2).textContent = formatCurrency(annualPayment);
+                loanRow.insertCell(3).textContent = formatCurrency(yearlyInterest);
+                loanRow.insertCell(4).textContent = formatCurrency(yearlyPrincipal);
+                loanRow.insertCell(5).textContent = formatCurrency(endBalance);
+                
+                loanBalance = endBalance;
+            }
+            
+            // 計算各年度現金流
+            for (let year = 1; year <= 5; year++) {
+                // 收入計算（考慮年增長率）
+                const growthFactor = Math.pow(1 + revenueGrowth, year - 1);
+                const chargeIncome = dailyCharge * chargeFee * operatingDays * growthFactor;
+                const parkingIncome = dailyParking * parkingFee * parkingHours * operatingDays * growthFactor;
+                // 儲能收益考慮效率損失
+                const storageIncome = storageCapacity * priceDiff * operatingDays * storageEfficiency * growthFactor;
+                const totalIncome = chargeIncome + parkingIncome + storageIncome;
+                
+                // 成本計算（考慮年增長率）
+                const costFactor = Math.pow(1 + costGrowth, year - 1);
+                // 電費成本（考慮儲能效率）
+                const electricityCost = (dailyCharge + storageCapacity) * offpeakPrice * operatingDays * costFactor;
+                // 設備維護成本
+                const maintenanceCost = totalInvestment * maintenanceRate * costFactor;
+                // 人力成本
+                const yearlyLaborCost = laborCost * costFactor;
+                // 場地租金
+                const yearlyRentCost = rentCost * costFactor;
+                // 保險費用
+                const insuranceCost = totalInvestment * insuranceRate * costFactor;
+                // 其他營運成本
+                const yearlyOtherCost = otherCost * costFactor;
+                // 總其他成本
+                const totalOtherCost = yearlyLaborCost + yearlyRentCost + insuranceCost + yearlyOtherCost;
+                
+                // 貸款還款（如果年份超過貸款期限，則為0）
+                const loanPayment = year <= loanYears ? annualPayment : 0;
+                
+                // 利潤計算
+                const profitBeforeTax = totalIncome - electricityCost - maintenanceCost - totalOtherCost - loanPayment;
+                const tax = profitBeforeTax > 0 ? profitBeforeTax * taxRate : 0;
+                const netProfit = profitBeforeTax - tax;
+                totalProfit += netProfit;
+                
+                // 存儲數據用於圖表
+                chargeIncomes.push(chargeIncome);
+                parkingIncomes.push(parkingIncome);
+                storageIncomes.push(storageIncome);
+                totalIncomes.push(totalIncome);
+                electricityCosts.push(electricityCost);
+                maintenanceCosts.push(maintenanceCost);
+                laborCosts.push(yearlyLaborCost);
+                otherCosts.push(yearlyRentCost + insuranceCost + yearlyOtherCost);
+                loanPayments.push(loanPayment);
+                netProfits.push(netProfit);
+                
+                // 添加到現金流表
+                const newRow = cashflowTable.insertRow();
+                newRow.insertCell(0).textContent = year;
+                newRow.insertCell(1).textContent = formatCurrency(chargeIncome);
+                newRow.insertCell(2).textContent = formatCurrency(parkingIncome);
+                newRow.insertCell(3).textContent = formatCurrency(storageIncome);
+                newRow.insertCell(4).textContent = formatCurrency(totalIncome);
+                newRow.insertCell(5).textContent = formatCurrency(electricityCost);
+                newRow.insertCell(6).textContent = formatCurrency(maintenanceCost);
+                newRow.insertCell(7).textContent = formatCurrency(yearlyLaborCost);
+                newRow.insertCell(8).textContent = formatCurrency(yearlyRentCost + insuranceCost + yearlyOtherCost);
+                newRow.insertCell(9).textContent = formatCurrency(loanPayment);
+                newRow.insertCell(10).textContent = formatCurrency(profitBeforeTax);
+                newRow.insertCell(11).textContent = formatCurrency(tax);
+                newRow.insertCell(12).textContent = formatCurrency(netProfit);
+                
+                // DCF計算
+                let residualValue = 0;
+                if (year === 5) {
+                    residualValue = totalInvestment * residualRate;
+                    totalProfit += residualValue;
+                }
+                const netCashflow = netProfit + residualValue;
+                const discountFactor = 1 / Math.pow(1 + discountRate, year);
+                const pv = netCashflow * discountFactor;
+                pvs.push(pv);
+                
+                // 計算累積現金流（用於回收期）
+                cumulativeCashflow += netCashflow;
+                
+                // 添加到DCF表
+                const dcfRow = dcfTable.insertRow();
+                dcfRow.insertCell(0).textContent = year;
+                dcfRow.insertCell(1).textContent = formatCurrency(netProfit);
+                dcfRow.insertCell(2).textContent = year === 5 ? formatCurrency(residualValue) : "-";
+                dcfRow.insertCell(3).textContent = formatCurrency(netCashflow);
+                dcfRow.insertCell(4).textContent = discountFactor.toFixed(4);
+                dcfRow.insertCell(5).textContent = formatCurrency(pv);
+                dcfRow.insertCell(6).textContent = formatCurrency(cumulativeCashflow);
+                
+                // 計算回收期
+                if (!paybackFound && cumulativeCashflow >= 0) {
+                    // 更精確的回收期計算（線性插值）
+                    const previousCF = cumulativeCashflow - netCashflow;
+                    const fraction = (0 - previousCF) / (cumulativeCashflow - previousCF);
+                    paybackYear = year - 1 + fraction;
+                    paybackFound = true;
+                }
+            }
+            
+            // 更新5年總利潤顯示
+            document.getElementById('total_profit').textContent = `5年總利潤: ${formatCurrency(totalProfit)}`;
+            
+            // 計算NPV和IRR
+            const npv = pvs.reduce((sum, val) => sum + val, 0) - downPayment;
+            const irr = calculateIRR(-downPayment, netProfits, residualRate * totalInvestment);
+            const roi = (totalProfit / totalInvestment) * 100;
+            
+            // 更新關鍵指標
+            document.getElementById('npv_output').textContent = `淨現值(NPV): ${formatCurrency(npv)}`;
+            document.getElementById('npv_output').className = npv >= 0 ? 'metric positive' : 'metric negative';
+            
+            document.getElementById('irr_output').textContent = `內部報酬率(IRR): ${(irr * 100).toFixed(1)}%`;
+            document.getElementById('irr_output').className = irr >= 0.1 ? 'metric positive' : 'metric negative';
+            
+            document.getElementById('payback_output').textContent = `投資回收期: ${paybackFound ? paybackYear.toFixed(1) + '年' : '超過5年'}`;
+            
+            document.getElementById('roi_output').textContent = `投資報酬率(ROI): ${roi.toFixed(1)}%`;
+            document.getElementById('roi_output').className = roi >= 0 ? 'metric positive' : 'metric negative';
+            
+            // 繪製利潤圖表
+            drawProfitChart(years, chargeIncomes, parkingIncomes, storageIncomes, netProfits);
+            
+            // 繪製成本結構圖表
+            drawCostBreakdownChart(years, electricityCosts, maintenanceCosts, laborCosts, otherCosts, loanPayments);
+        }
+        
+        // 計算貸款月付款
+        function PMT(rate, nper, pv, fv = 0, type = 0) {
+            if (rate === 0) return -(pv + fv) / nper;
+            
+            const pvif = Math.pow(1 + rate, nper);
+            let pmt = rate / (pvif - 1) * -(pv * pvif + fv);
+            
+            if (type === 1) {
+                pmt /= (1 + rate);
+            }
+            
+            return pmt;
+        }
+        
+        // 計算IRR（使用二分法求解）
+        function calculateIRR(initialInvestment, cashflows, residualValue) {
+            // 將初始投資和所有現金流合併為一個數組
+            const allCashflows = [initialInvestment, ...cashflows];
+            if (residualValue) {
+                allCashflows[allCashflows.length - 1] += residualValue;
+            }
+            
+            // 使用二分法求解IRR
+            let low = -0.99;
+            let high = 1;
+            let guess = (low + high) / 2;
+            let tolerance = 0.0001;
+            let maxIterations = 1000;
+            let iteration = 0;
+            
+            while (iteration < maxIterations) {
+                let npv = 0;
+                for (let i = 0; i < allCashflows.length; i++) {
+                    npv += allCashflows[i] / Math.pow(1 + guess, i);
+                }
+                
+                if (Math.abs(npv) < tolerance) {
+                    return guess;
+                }
+                
+                if (npv > 0) {
+                    low = guess;
+                } else {
+                    high = guess;
+                }
+                
+                guess = (low + high) / 2;
+                iteration++;
+            }
+            
+            return guess;
+        }
+        
+        // 格式化貨幣顯示
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('zh-TW', { 
+                style: 'currency', 
+                currency: 'TWD', 
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(num);
+        }
+        
+        // 繪製利潤圖表
+        function drawProfitChart(years, chargeIncomes, parkingIncomes, storageIncomes, netProfits) {
+            const ctx = document.getElementById('profitChart').getContext('2d');
+            
+            // 如果已有圖表實例，先銷毀
+            if (profitChart) {
+                profitChart.destroy();
+            }
+            
+            profitChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: '充電收入',
+                            data: chargeIncomes,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '停車收入',
+                            data: parkingIncomes,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '儲能收益',
+                            data: storageIncomes,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '稅後淨利',
+                            data: netProfits,
+                            type: 'line',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(153, 102, 255, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '金額 (新台幣)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '年度'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '年度收入與利潤分析',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += formatCurrency(context.raw);
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 繪製成本結構圖表
+        function drawCostBreakdownChart(years, electricityCosts, maintenanceCosts, laborCosts, otherCosts, loanPayments) {
+            const ctx = document.getElementById('costBreakdownChart').getContext('2d');
+            
+            // 如果已有圖表實例，先銷毀
+            if (costBreakdownChart) {
+                costBreakdownChart.destroy();
+            }
+            
+            costBreakdownChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: '電費成本',
+                            data: electricityCosts,
+                            backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '維護成本',
+                            data: maintenanceCosts,
+                            backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '人力成本',
+                            data: laborCosts,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '其他成本',
+                            data: otherCosts,
+                            backgroundColor: 'rgba(153, 102, 255, 0.7)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '貸款還款',
+                            data: loanPayments,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: '金額 (新台幣)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: '年度'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '年度成本結構分析',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += formatCurrency(context.raw);
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 執行敏感度分析
+        function runSensitivityAnalysis() {
+            // 獲取敏感度分析參數
+            const usageMin = parseInt(document.getElementById('usage_min').value) / 100;
+            const usageBase = parseInt(document.getElementById('usage_base').value) / 100;
+            const usageMax = parseInt(document.getElementById('usage_max').value) / 100;
+            
+            const priceDiffMin = parseFloat(document.getElementById('price_diff_min').value);
+            const priceDiffBase = parseFloat(document.getElementById('price_diff_base').value);
+            const priceDiffMax = parseFloat(document.getElementById('price_diff_max').value);
+            
+            // 獲取基準參數
+            const storageCost = parseFloat(document.getElementById('storage_cost').value);
+            const chargerCost = parseFloat(document.getElementById('charger_cost').value);
+            const chargerCount = parseInt(document.getElementById('charger_count').value);
+            const totalInvestment = storageCost + (chargerCost * chargerCount);
+            const downPaymentRate = parseFloat(document.getElementById('down_payment_rate').value) / 100;
+            const downPayment = totalInvestment * downPaymentRate;
+            const residualRate = parseFloat(document.getElementById('residual_rate').value) / 100;
+            const discountRate = parseFloat(document.getElementById('discount_rate').value) / 100;
+            const storageEfficiency = parseFloat(document.getElementById('storage_efficiency').value) / 100;
+            
+            // 創建分析情景
+            const scenarios = [
+                { usage: usageMin, priceDiff: priceDiffBase, label: '低使用率' },
+                { usage: usageBase, priceDiff: priceDiffBase, label: '基準情境' },
+                { usage: usageMax, priceDiff: priceDiffBase, label: '高使用率' },
+                { usage: usageBase, priceDiff: priceDiffMin, label: '低電價差' },
+                { usage: usageBase, priceDiff: priceDiffMax, label: '高電價差' },
+                { usage: usageMin, priceDiff: priceDiffMin, label: '悲觀情境' },
+                { usage: usageMax, priceDiff: priceDiffMax, label: '樂觀情境' }
+            ];
+            
+            // 準備圖表數據
+            const scenarioLabels = [];
+            const npvData = [];
+            const irrData = [];
+            const paybackData = [];
+            
+            // 分析每個情景
+            scenarios.forEach(scenario => {
+                // 計算調整後的參數
+                const adjustedDailyCharge = parseFloat(document.getElementById('daily_charge').value) * scenario.usage;
+                const adjustedPriceDiff = scenario.priceDiff;
+                
+                // 獲取其他必要參數
+                const chargeFee = parseFloat(document.getElementById('charge_fee').value);
+                const parkingFee = parseFloat(document.getElementById('parking_fee').value);
+                const dailyParking = parseFloat(document.getElementById('daily_parking').value) * scenario.usage;
+                const parkingHours = parseFloat(document.getElementById('parking_hours').value);
+                const offpeakPrice = parseFloat(document.getElementById('offpeak_price').value);
+                const storageCapacity = parseFloat(document.getElementById('storage_capacity').value);
+                const operatingDays = parseInt(document.getElementById('operating_days').value);
+                const maintenanceRate = parseFloat(document.getElementById('maintenance_rate').value) / 100;
+                const laborCost = parseFloat(document.getElementById('labor_cost').value);
+                const rentCost = parseFloat(document.getElementById('rent_cost').value);
+                const insuranceRate = parseFloat(document.getElementById('insurance_rate').value) / 100;
+                const otherCost = parseFloat(document.getElementById('other_cost').value);
+                const loanRate = parseFloat(document.getElementById('loan_rate').value) / 100;
+                const loanYears = parseInt(document.getElementById('loan_years').value);
+                const loanAmount = totalInvestment - downPayment;
+                const annualPayment = PMT(loanRate/12, loanYears*12, loanAmount) * 12;
+                const taxRate = parseFloat(document.getElementById('tax_rate').value) / 100;
+                const revenueGrowth = parseFloat(document.getElementById('revenue_growth').value) / 100;
+                const costGrowth = parseFloat(document.getElementById('cost_growth').value) / 100;
+                
+                // 計算5年現金流
+                const cashflows = [];
+                let cumulativeCashflow = -downPayment;
+                let paybackYear = 0;
+                let paybackFound = false;
+                
+                for (let year = 1; year <= 5; year++) {
+                    // 收入計算（考慮年增長率）
+                    const growthFactor = Math.pow(1 + revenueGrowth, year - 1);
+                    const chargeIncome = adjustedDailyCharge * chargeFee * operatingDays * growthFactor;
+                    const parkingIncome = dailyParking * parkingFee * parkingHours * operatingDays * growthFactor;
+                    // 儲能收益考慮效率損失
+                    const storageIncome = storageCapacity * adjustedPriceDiff * operatingDays * storageEfficiency * growthFactor;
+                    const totalIncome = chargeIncome + parkingIncome + storageIncome;
+                    
+                    // 成本計算（考慮年增長率）
+                    const costFactor = Math.pow(1 + costGrowth, year - 1);
+                    // 電費成本（考慮儲能效率）
+                    const electricityCost = (adjustedDailyCharge + storageCapacity) * offpeakPrice * operatingDays * costFactor;
+                    // 設備維護成本
+                    const maintenanceCost = totalInvestment * maintenanceRate * costFactor;
+                    // 人力成本
+                    const yearlyLaborCost = laborCost * costFactor;
+                    // 場地租金
+                    const yearlyRentCost = rentCost * costFactor;
+                    // 保險費用
+                    const insuranceCost = totalInvestment * insuranceRate * costFactor;
+                    // 其他營運成本
+                    const yearlyOtherCost = otherCost * costFactor;
+                    // 總其他成本
+                    const totalOtherCost = yearlyLaborCost + yearlyRentCost + insuranceCost + yearlyOtherCost;
+                    
+                    // 貸款還款（如果年份超過貸款期限，則為0）
+                    const loanPayment = year <= loanYears ? annualPayment : 0;
+                    
+                    // 利潤計算
+                    const profitBeforeTax = totalIncome - electricityCost - maintenanceCost - totalOtherCost - loanPayment;
+                    const tax = profitBeforeTax > 0 ? profitBeforeTax * taxRate : 0;
+                    let netProfit = profitBeforeTax - tax;
+                    
+                    // 第5年加上殘值
+                    if (year === 5) {
+                        const residualValue = totalInvestment * residualRate;
+                        netProfit += residualValue;
+                    }
+                    
+                    cashflows.push(netProfit);
+                    
+                    // 計算累積現金流（用於回收期）
+                    cumulativeCashflow += netProfit;
+                    
+                    // 計算回收期
+                    if (!paybackFound && cumulativeCashflow >= 0) {
+                        // 更精確的回收期計算（線性插值）
+                        const previousCF = cumulativeCashflow - netProfit;
+                        const fraction = (0 - previousCF) / (cumulativeCashflow - previousCF);
+                        paybackYear = year - 1 + fraction;
+                        paybackFound = true;
+                    }
+                }
+                
+                // 計算NPV
+                let npv = -downPayment;
+                for (let i = 0; i < cashflows.length; i++) {
+                    npv += cashflows[i] / Math.pow(1 + discountRate, i + 1);
+                }
+                
+                // 計算IRR
+                const irr = calculateIRR(-downPayment, cashflows.slice(0, 4), cashflows[4] - (totalInvestment * residualRate));
+                
+                // 存儲圖表數據
+                scenarioLabels.push(scenario.label);
+                npvData.push(npv);
+                irrData.push(irr * 100);
+                paybackData.push(paybackFound ? paybackYear : 6); // 如果未找到回收期，設為6年
+            });
+            
+            // 繪製敏感度分析圖表
+            drawSensitivityChart(scenarioLabels, npvData, irrData, paybackData);
+        }
+        
+        // 繪製敏感度分析圖表
+        function drawSensitivityChart(labels, npvData, irrData, paybackData) {
+            const ctx = document.getElementById('sensitivityChart').getContext('2d');
+            
+            // 如果已有圖表實例，先銷毀
+            if (sensitivityChart) {
+                sensitivityChart.destroy();
+            }
+            
+            sensitivityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'NPV (新台幣)',
+                            data: npvData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'IRR (%)',
+                            data: irrData,
+                            type: 'line',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            yAxisID: 'y1',
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(255, 99, 132, 1)'
+                        },
+                        {
+                            label: '回收期 (年)',
+                            data: paybackData,
+                            type: 'line',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 3,
+                            fill: false,
+                            yAxisID: 'y2',
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(75, 192, 192, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'NPV (新台幣)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'IRR (%)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            min: 0,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false,
+                            min: 0,
+                            max: 6
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '敏感度分析: 不同情境下的財務指標',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.datasetIndex === 0) {
+                                        // NPV
+                                        label += formatCurrency(context.raw);
+                                    } else if (context.datasetIndex === 1) {
+                                        // IRR
+                                        label += context.raw.toFixed(1) + '%';
+                                    } else {
+                                        // 回收期
+                                        if (context.raw >= 6) {
+                                            label += '超過5年';
+                                        } else {
+                                            label += context.raw.toFixed(1) + '年';
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 為所有輸入框添加自動計算事件
+        function setupAutocalculate() {
+            document.querySelectorAll('.input-cell').forEach(input => {
+                input.addEventListener('change', calculate);
+                input.addEventListener('input', function() {
+                    // 對於數字輸入框，確保值是有效的
+                    if (this.type === 'number' && this.value !== '' && !isNaN(this.value)) {
+                        calculate();
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

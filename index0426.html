@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORETEK - 光電技術</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+    /* 新增模態框樣式 */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-content {
+        position: absolute;
+        top: 50%; /* 垂直居中 */
+        left: 50%; /* 水平居中 */
+        transform: translate(-50%, -50%); /* 調整為中心 */
+        padding: 20px;
+        background-color: white;
+        max-width: 90%; /* 保持最大寬度 */
+        max-height: 90vh; /* 調整為視窗高度的90% */
+        overflow-y: auto; /* 允許垂直滾動 */
+        box-sizing: border-box;
+    }
+
+    .modal-content img {
+        max-width: 100%; /* 圖片寬度不超過模態框 */
+        height: auto; /* 保持比例 */
+        display: block; /* 避免圖片間距問題 */
+        margin: 0 auto; /* 圖片居中 */
+    }
+
+    .modal-content h2, .modal-content p, .modal-content ul {
+        margin: 10px 0; /* 增加間距 */
+        text-align: center;
+    }
+
+    .modal-content ul li {
+        list-style: none;
+        margin: 10px 0;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        color: white;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav>
+        <img src="images/coretek-logo.png" alt="CORETEK Logo" width="309" height="79" class="logo">
+        <ul>
+            <li><a href="#about">關於我們</a></li>
+            <li><a href="#products">產品與服務</a></li>
+            <li><a href="電費分析0425.html">電費分析</a></li>
+            <li><a href="財務試算.html">財務試算</a></li>
+            <li><a href="#contact">聯絡我們</a></li>
+        </ul>
+    </nav>
+
+    <!-- 第一頁 - 關於我們 -->
+    <section id="about" class="section">
+        <h1>關於我們</h1>
+        <div class="content" style="width: 100%;">
+            <img src="images/00_關於我們.png" alt="關於我們" width="1307" height="620">
+        </div>
+    </section>
+
+    <!-- 第二頁 - 產品資料 -->
+    <section id="products" class="section">
+        <h1>產品與服務</h1>
+        <div class="product-grid">
+            <div class="product-card" onclick="showModal('brp')">
+                <img src="images/01_BRP.png" alt="brp Icon">
+                <h3>BRP汰役電池降階利用</h3>
+                <p>60V電池組電池模組(SOH)檢測，符合UL 1974安全認證。</p>
+            </div>	
+            <div class="product-card" onclick="showModal('trp')">
+                <img src="images/02_TRP電池組預警系統.png" alt="trp Icon">
+                <h3>TRP電池組預警系統</h3>
+                <p>30分鐘預警潛在風險，結合AI監控。</p>
+            </div>
+            <div class="product-card" onclick="showModal('storage')">
+                <img src="images/03_(1)企業儲能.png" alt="Storage Icon">
+                <h3>錶後儲能系統</h3>
+                <p>涵蓋企業、旅館、宮廟、夜市儲能解決方案。</p>
+            </div>
+            <div class="product-card" onclick="showModal('charger')">
+                <img src="images/04_充電樁.png" alt="Charger Icon">
+                <h3>充電樁</h3>
+                <p>DC 48-600V，200kW功率，CAN/RS485通訊。</p>
+            </div>
+            <div class="product-card" onclick="showModal('discharge')">
+                <img src="images/05_動力電池自動放電裝置.png" alt="Discharge Icon">
+                <h3>動力電池自動放電裝置</h3>
+                <p>10分鐘內完成安全放電。</p>
+            </div>
+            <div class="product-card" onclick="showModal('construction')">
+                <img src="images/06_儲能建置工程.png" alt="Construction Icon">
+                <h3>儲能建置工程</h3>
+                <p>30%電費節省，符合ESG標準。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第三頁 - 聯絡我們 -->
+    <section id="contact" class="section">
+        <h1>聯絡我們</h1>
+        <div id='qme' class="text" style="text-align: center; margin: 0 auto;">  
+            <p>CORETEK光電股份有限公司專注於新能源技術的發展，涵蓋電池儲能系統、充電樁技術等，致力於推動可再生能源的應用。</p>
+            <p><strong>聯絡資訊：</strong><br>
+            聯絡人：吳文達<br>
+            電話：0922-874-857<br>
+                電子郵件：ronald.wu@coretek.com.tw<br>
+                地址：350004 苗栗縣竹南鎮公教路41號</p>
+            <img src="images/qr-code.png" alt="QR Code" width="300" height="100" class="qr-code">
+        </div>
+    </section>
+
+    <!-- 電費分析容器 -->
+    <div id="energy-calculation-container">
+        <span class="close-energy" onclick="hideEnergyCalculation()">&times;</span>
+        <!-- 內容將由JavaScript動態載入 -->
+    </div>
+
+    <!-- 財務試算容器 -->
+    <div id="financial-calculation-container">
+        <span class="close-financial" onclick="hideFinancialCalculation()">&times;</span>
+        <!-- 內容將由JavaScript動態載入 -->
+    </div>
+
+    <!-- 模態框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- 腳注 -->
+    <footer>
+        <p>&copy; 2025 CORETEK光電股份有限公司. 所有權利保留。</p>
+    </footer>
+
+    <script>
+        // 顯示電費分析頁面
+        function showEnergyCalculation() {
+            const container = document.getElementById('energy-calculation-container');
+            const errorMsg = '無法載入電費分析頁面，請確認：<br>1. 檔案「電費分析.html」是否存在<br>2. 檔案是否與本頁面在同一目錄<br>3. 是否通過HTTP伺服器運行';
+            
+            // 檢查檔案是否存在
+            fetch('電費分析0425.html')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('檔案不存在或無法讀取');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    const bodyStart = html.indexOf('<body>');
+                    const bodyEnd = html.indexOf('</body>');
+                    
+                    if (bodyStart === -1 || bodyEnd === -1) {
+                        container.innerHTML = `<span class="close-energy" onclick="hideEnergyCalculation()">&times;</span>
+                            <div style="padding:20px;color:red;">電費分析頁面格式不正確</div>`;
+                    } else {
+                        const bodyContent = html.slice(bodyStart + 6, bodyEnd);
+                        container.innerHTML = '<span class="close-energy" onclick="hideEnergyCalculation()">&times;</span>' + bodyContent;
+                        
+                        // 執行動態載入的腳本
+                        const scripts = container.getElementsByTagName('script');
+                        for (let i = 0; i < scripts.length; i++) {
+                            const newScript = document.createElement('script');
+                            newScript.text = scripts[i].text;
+                            document.body.appendChild(newScript).parentNode.removeChild(newScript);
+                        }
+                    }
+                    container.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('載入錯誤:', error);
+                    container.innerHTML = `<span class="close-energy" onclick="hideEnergyCalculation()">&times;</span>
+                        <div style="padding:20px;color:red;">${errorMsg}</div>
+                        <div style="padding:10px;">詳細錯誤：${error.message}</div>`;
+                    container.style.display = 'block';
+                });
+            
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 隱藏電費分析頁面
+        function hideEnergyCalculation() {
+            document.getElementById('energy-calculation-container').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // 顯示財務試算頁面
+        function showFinancialCalculation() {
+            const container = document.getElementById('financial-calculation-container');
+            const errorMsg = '無法載入財務試算頁面，請確認：<br>1. 檔案「財務試算.html」是否存在<br>2. 檔案是否與本頁面在同一目錄<br>3. 是否通過HTTP伺服器運行';
+            
+            fetch('財務試算.html')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('檔案不存在或無法讀取');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    const bodyStart = html.indexOf('<body>');
+                    const bodyEnd = html.indexOf('</body>');
+                    
+                    if (bodyStart === -1 || bodyEnd === -1) {
+                        container.innerHTML = `<span class="close-financial" onclick="hideFinancialCalculation()">&times;</span>
+                            <div style="padding:20px;color:red;">財務試算頁面格式不正確</div>`;
+                    } else {
+                        const bodyContent = html.slice(bodyStart + 6, bodyEnd);
+                        container.innerHTML = '<span class="close-financial" onclick="hideFinancialCalculation()">&times;</span>' + bodyContent;
+                        
+                        const scripts = container.getElementsByTagName('script');
+                        for (let i = 0; i < scripts.length; i++) {
+                            const newScript = document.createElement('script');
+                            newScript.text = scripts[i].text;
+                            document.body.appendChild(newScript).parentNode.removeChild(newScript);
+                        }
+                    }
+                    container.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('載入錯誤:', error);
+                    container.innerHTML = `<span class="close-financial" onclick="hideFinancialCalculation()">&times;</span>
+                        <div style="padding:20px;color:red;">${errorMsg}</div>
+                        <div style="padding:10px;">詳細錯誤：${error.message}</div>`;
+                    container.style.display = 'block';
+                });
+            
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 隱藏財務試算頁面
+        function hideFinancialCalculation() {
+            document.getElementById('financial-calculation-container').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // 模態框功能
+        function showModal(productId) {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modal-content');
+            
+            // 根據產品ID載入不同內容
+            let content = '';
+            switch(productId) {
+                case 'brp':
+                    content = `
+                        <img src="images/01_BRP.png" alt="BRP產品詳情">
+                        <h2>BRP汰役電池降階利用</h2>
+                        <p>詳細產品說明內容...</p>
+                    `;
+                    break;
+                // 其他產品案例...
+                default:
+                    content = `<p>產品詳細資訊載入中...</p>`;
+            }
+            
+            modalContent.innerHTML = content;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    </script>
+</body>
+</html>

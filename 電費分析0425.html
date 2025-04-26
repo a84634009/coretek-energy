@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電費分析與儲能系統評估工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .section {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 10px 20px;
+            background-color: #eee;
+            cursor: pointer;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .two-columns {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+        }
+        .hidden {
+            display: none;
+        }
+        .explanation {
+            background-color: #eaf7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            border-left: 4px solid #3498db;
+        }
+        .monthly-usage-table {
+            width: auto;
+        }
+        .monthly-usage-table th, .monthly-usage-table td {
+            padding: 5px 10px;
+            text-align: center;
+        }
+        .customer-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .customer-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .customer-item:hover {
+            background-color: #f0f0f0;
+        }
+        .rate-config-table {
+            font-size: 14px;
+        }
+        .rate-config-table th, .rate-config-table td {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>電費分析與儲能系統評估工具</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="openTab('basic-info')">基本資料</div>
+            <div class="tab" onclick="openTab('bill-comparison')">電費比較</div>
+            <div class="tab" onclick="openTab('contract-optimization')">契約容量優化</div>
+            <div class="tab" onclick="openTab('storage-analysis')">儲能系統分析</div>
+            <div class="tab" onclick="openTab('rate-config')">電價設定</div>
+            <div class="tab" onclick="openTab('data-management')">資料管理</div>
+        </div>
+        
+        <!-- 基本資料輸入 -->
+        <div id="basic-info" class="tab-content active">
+            <div class="section">
+                <h2>客戶基本資料</h2>
+                <div class="form-group">
+                    <label for="customer-id">客戶編號</label>
+                    <input type="text" id="customer-id" placeholder="輸入客戶編號">
+                </div>
+                <div class="form-group">
+                    <label for="customer-name">客戶名稱</label>
+                    <input type="text" id="customer-name" placeholder="輸入客戶名稱">
+                </div>
+                <div class="form-group">
+                    <label for="power-type">用電類別</label>
+                    <select id="power-type">
+                        <option value="table-light">表燈</option>
+                        <option value="low-voltage">低壓電力</option>
+                        <option value="high-voltage">高壓電力</option>
+                        <option value="extra-high-voltage">特高壓電力</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="rate-type">當前電價模式</label>
+                    <select id="rate-type">
+                        <option value="non-time">非時間電價</option>
+                        <option value="two-stage">時間電價(二段式)</option>
+                        <option value="three-stage">時間電價(三段式)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="contract-capacity">契約容量 (kW)</label>
+                    <input type="number" id="contract-capacity" placeholder="輸入當前契約容量" min="0">
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>儲能系統規格</h2>
+                <div class="form-group">
+                    <label for="pcs-power">PCS功率 (kW)</label>
+                    <input type="number" id="pcs-power" placeholder="輸入PCS功率" min="0" value="125">
+                </div>
+                <div class="form-group">
+                    <label for="battery-capacity">電池容量 (kWh)</label>
+                    <input type="number" id="battery-capacity" placeholder="輸入電池容量" min="0" value="261">
+                </div>
+                <div class="form-group">
+                    <label for="storage-cost">儲能系統成本 (元)</label>
+                    <input type="number" id="storage-cost" placeholder="輸入儲能系統成本" min="0" value="1600000">
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>每月用電度數</h2>
+                <table class="monthly-usage-table">
+                    <thead>
+                        <tr>
+                            <th>月份</th>
+                            <th>尖峰用電 (度)</th>
+                            <th id="semi-peak-header">半尖峰用電 (度)</th>
+                            <th>離峰用電 (度)</th>
+                            <th id="saturday-semi-peak-header">週六半尖峰用電 (度)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthly-usage-body">
+                        <!-- 月份行將由JavaScript動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <button onclick="saveData()">儲存資料</button>
+            <button onclick="calculateAll()">計算所有分析</button>
+        </div>
+        
+        <!-- 電費比較 -->
+        <div id="bill-comparison" class="tab-content">
+            <div class="section">
+                <h2>電費方案比較</h2>
+                <table id="bill-comparison-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th id="current-scheme-header">當前方案</th>
+                            <th id="alt1-scheme-header">替代方案1</th>
+                            <th id="alt2-scheme-header">替代方案2</th>
+                            <th>儲能方案</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>基本電費(夏月)</td>
+                            <td id="current-base-summer">-</td>
+                            <td id="alt1-base-summer">-</td>
+                            <td id="alt2-base-summer">-</td>
+                            <td id="storage-base-summer">-</td>
+                        </tr>
+                        <tr>
+                            <td>基本電費(非夏月)</td>
+                            <td id="current-base-non-summer">-</td>
+                            <td id="alt1-base-non-summer">-</td>
+                            <td id="alt2-base-non-summer">-</td>
+                            <td id="storage-base-non-summer">-</td>
+                        </tr>
+                        <tr>
+                            <td>流動電費(夏月)</td>
+                            <td id="current-flow-summer">-</td>
+                            <td id="alt1-flow-summer">-</td>
+                            <td id="alt2-flow-summer">-</td>
+                            <td id="storage-flow-summer">-</td>
+                        </tr>
+                        <tr>
+                            <td>流動電費(非夏月)</td>
+                            <td id="current-flow-non-summer">-</td>
+                            <td id="alt1-flow-non-summer">-</td>
+                            <td id="alt2-flow-non-summer">-</td>
+                            <td id="storage-flow-non-summer">-</td>
+                        </tr>
+                        <tr>
+                            <td>總電費(年)</td>
+                            <td id="current-total">-</td>
+                            <td id="alt1-total">-</td>
+                            <td id="alt2-total">-</td>
+                            <td id="storage-total">-</td>
+                        </tr>
+                        <tr>
+                            <td>節省金額</td>
+                            <td>-</td>
+                            <td id="alt1-saving">-</td>
+                            <td id="alt2-saving">-</td>
+                            <td id="storage-saving">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="explanation">
+                    <h3>儲能方案節費推算說明：</h3>
+                    <p>1. <strong>削峰填谷節省</strong>：儲能系統在離峰時段充電，尖峰時段放電，利用電價差節省費用。</p>
+                    <p>2. <strong>契約容量優化節省</strong>：儲能系統可降低最大需量，從而減少契約容量需求，節省基本電費。</p>
+                    <p>3. <strong>總節省計算</strong>：年總節省 = (削峰填谷節省 + 契約容量節省) × 12個月。</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 契約容量優化 -->
+        <div id="contract-optimization" class="tab-content">
+            <div class="section">
+                <h2>契約容量優化分析</h2>
+                <table id="contract-optimization-table">
+                    <thead>
+                        <tr>
+                            <th>契約容量選項 (kW)</th>
+                            <th>基本電費(夏月)</th>
+                            <th>基本電費(非夏月)</th>
+                            <th>超約罰款風險</th>
+                            <th>總成本評估</th>
+                            <th>推薦指數</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 將由JavaScript動態生成 -->
+                    </tbody>
+                </table>
+                
+                <div class="explanation">
+                    <h3>契約容量計價公式說明：</h3>
+                    <p>1. <strong>基本電費計算</strong>：基本電費 = 契約容量 × 單價（夏月/非夏月不同）</p>
+                    <p>2. <strong>超約罰款</strong>：若實際用電超過契約容量，超出部分按契約容量單價的2-3倍計收。</p>
+                    <p>3. <strong>風險評估</strong>：根據歷史用電數據分析各容量選項的超約可能性。</p>
+                    <p>4. <strong>總成本評估</strong>：總成本 = 基本電費 + 預期超約罰款。</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 儲能系統分析 -->
+        <div id="storage-analysis" class="tab-content">
+            <div class="section">
+                <h2>儲能系統效益分析</h2>
+                <table>
+                    <tr>
+                        <th>項目</th>
+                        <th>數值</th>
+                        <th>說明</th>
+                    </tr>
+                    <tr>
+                        <td>PCS功率</td>
+                        <td id="display-pcs-power">125 kW</td>
+                        <td>系統額定功率</td>
+                    </tr>
+                    <tr>
+                        <td>電池容量</td>
+                        <td id="display-battery-capacity">261 kWh</td>
+                        <td>總儲能量</td>
+                    </tr>
+                    <tr>
+                        <td>每日循環次數</td>
+                        <td>1</td>
+                        <td>假設每日充放電一次</td>
+                    </tr>
+                    <tr>
+                        <td>削峰填谷節省</td>
+                        <td id="peak-shaving-saving">-</td>
+                        <td>根據電價差計算</td>
+                    </tr>
+                    <tr>
+                        <td>契約容量優化節省</td>
+                        <td id="contract-optim-saving">-</td>
+                        <td>可能降低契約容量</td>
+                    </tr>
+                    <tr>
+                        <td>年總節省</td>
+                        <td id="total-year-saving" class="result">-</td>
+                        <td>兩項節省總和</td>
+                    </tr>
+                    <tr>
+                        <td>儲能系統成本</td>
+                        <td id="display-storage-cost">1,600,000 元</td>
+                        <td>系統總投資</td>
+                    </tr>
+                    <tr>
+                        <td>投資回收期</td>
+                        <td id="payback-period" class="result">-</td>
+                        <td>以年節省金額計算</td>
+                    </tr>
+                </table>
+                
+                <div class="explanation">
+                    <h3>節省費用計算說明：</h3>
+                    <p>1. <strong>削峰填谷節省</strong>：</p>
+                    <p>每日節省 = (尖峰電價 - 離峰電價) × 儲能系統放電量 × 每月工作日</p>
+                    <p>年節省 = 每日節省 × 12個月</p>
+                    
+                    <p>2. <strong>契約容量優化節省</strong>：</p>
+                    <p>根據儲能系統功率(125kW)可降低契約容量，節省基本電費</p>
+                    <p>節省金額 = (原契約容量單價 - 新契約容量單價) × 12個月</p>
+                    
+                    <p>3. <strong>投資回收期</strong>：</p>
+                    <p>回收期(年) = 儲能系統成本 / 年總節省金額</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 電價設定 -->
+        <div id="rate-config" class="tab-content">
+            <div class="section">
+                <h2>電價設定</h2>
+                <div class="form-group">
+                    <label for="rate-config-type">電價類別</label>
+                    <select id="rate-config-type">
+                        <option value="low-voltage">低壓電力</option>
+                        <option value="high-voltage">高壓電力</option>
+                        <option value="extra-high-voltage">特高壓電力</option>
+                    </select>
+                </div>
+                
+                <h3>基本電費單價 (元/kW)</h3>
+                <table class="rate-config-table">
+                    <tr>
+                        <th>項目</th>
+                        <th>夏月單價</th>
+                        <th>非夏月單價</th>
+                    </tr>
+                    <tr>
+                        <td>經常契約</td>
+                        <td><input type="number" id="summer-base-rate" value="236.20" step="0.01" min="0"></td>
+                        <td><input type="number" id="non-summer-base-rate" value="173.20" step="0.01" min="0"></td>
+                    </tr>
+                    <tr>
+                        <td>非夏月契約</td>
+                        <td>-</td>
+                        <td><input type="number" id="non-summer-contract-rate" value="173.20" step="0.01" min="0"></td>
+                    </tr>
+                </table>
+                
+                <h3>流動電費單價 (元/度)</h3>
+                <table class="rate-config-table">
+                    <tr>
+                        <th>項目</th>
+                        <th>夏月單價</th>
+                        <th>非夏月單價</th>
+                    </tr>
+                    <tr>
+                        <td>尖峰時間</td>
+                        <td><input type="number" id="summer-peak-rate" value="5.42" step="0.01" min="0"></td>
+                        <td><input type="number" id="non-summer-peak-rate" value="4.42" step="0.01" min="0"></td>
+                    </tr>
+                    <tr>
+                        <td>半尖峰時間</td>
+                        <td><input type="number" id="summer-semi-peak-rate" value="3.24" step="0.01" min="0"></td>
+                        <td><input type="number" id="non-summer-semi-peak-rate" value="3.18" step="0.01" min="0"></td>
+                    </tr>
+                    <tr>
+                        <td>離峰時間</td>
+                        <td><input type="number" id="summer-off-peak-rate" value="1.39" step="0.01" min="0"></td>
+                        <td><input type="number" id="non-summer-off-peak-rate" value="1.33" step="0.01" min="0"></td>
+                    </tr>
+                    <tr>
+                        <td>週六半尖峰時間</td>
+                        <td><input type="number" id="summer-saturday-semi-peak-rate" value="3.24" step="0.01" min="0"></td>
+                        <td><input type="number" id="non-summer-saturday-semi-peak-rate" value="3.18" step="0.01" min="0"></td>
+                    </tr>
+                </table>
+                
+                <button onclick="saveRateConfig()">儲存設定</button>
+                <button onclick="loadDefaultRates()">載入預設值</button>
+            </div>
+            
+            <div class="section">
+                <h2>電價時段說明</h2>
+                <table>
+                    <tr>
+                        <th>時段</th>
+                        <th>時間</th>
+                        <th>適用日</th>
+                    </tr>
+                    <tr>
+                        <td>尖峰時間</td>
+                        <td>10:00-12:00, 13:00-17:00</td>
+                        <td>週一至週五</td>
+                    </tr>
+                    <tr>
+                        <td>半尖峰時間</td>
+                        <td>07:30-10:00, 12:00-13:00, 17:00-22:30</td>
+                        <td>週一至週五</td>
+                    </tr>
+                    <tr>
+                        <td>週六半尖峰時間</td>
+                        <td>07:30-22:30</td>
+                        <td>週六</td>
+                    </tr>
+                    <tr>
+                        <td>離峰時間</td>
+                        <td>22:30-07:30</td>
+                        <td>週一至週六</td>
+                    </tr>
+                    <tr>
+                        <td>離峰時間</td>
+                        <td>全日</td>
+                        <td>週日及國定假日</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 資料管理 -->
+        <div id="data-management" class="tab-content">
+            <div class="section">
+                <h2>客戶資料管理</h2>
+                <div class="form-group">
+                    <label for="search-customer">搜尋客戶</label>
+                    <input type="text" id="search-customer" placeholder="輸入客戶編號或名稱">
+                    <button onclick="searchCustomers()">搜尋</button>
+                </div>
+                
+                <div id="customer-list" class="customer-list">
+                    <!-- 將由JavaScript動態生成 -->
+                </div>
+                
+                <button onclick="exportData()">匯出資料</button>
+                <button onclick="importData()">匯入資料</button>
+                <button onclick="clearAllData()" style="background-color: #e74c3c;">清除所有資料</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 初始化變數
+        const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+        let customers = JSON.parse(localStorage.getItem('customers')) || [];
+        let rateConfigs = JSON.parse(localStorage.getItem('rateConfigs')) || {};
+        
+        // 初始化月份用電表格
+        function initMonthlyUsageTable() {
+            const tbody = document.getElementById('monthly-usage-body');
+            tbody.innerHTML = '';
+            
+            months.forEach(month => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${month}</td>
+                    <td><input type="number" class="peak-usage" placeholder="尖峰用電" min="0"></td>
+                    <td><input type="number" class="semi-peak-usage" placeholder="半尖峰用電" min="0"></td>
+                    <td><input type="number" class="off-peak-usage" placeholder="離峰用電" min="0"></td>
+                    <td><input type="number" class="saturday-semi-peak-usage" placeholder="週六半尖峰用電" min="0"></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 切換標籤頁
+        function openTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            if (tabId === 'data-management') {
+                refreshCustomerList();
+            } else if (tabId === 'rate-config') {
+                loadRateConfig();
+            }
+        }
+        
+        // 根據電價模式顯示/隱藏半尖峰用電欄位
+        document.getElementById('rate-type').addEventListener('change', function() {
+            const rateType = this.value;
+            const semiPeakInputs = document.querySelectorAll('.semi-peak-usage');
+            const semiPeakHeader = document.getElementById('semi-peak-header');
+            const saturdaySemiPeakInputs = document.querySelectorAll('.saturday-semi-peak-usage');
+            const saturdaySemiPeakHeader = document.getElementById('saturday-semi-peak-header');
+            
+            if (rateType === 'three-stage') {
+                semiPeakInputs.forEach(input => {
+                    input.disabled = false;
+                    input.placeholder = '半尖峰用電';
+                });
+                semiPeakHeader.style.display = 'table-cell';
+                saturdaySemiPeakInputs.forEach(input => {
+                    input.disabled = false;
+                    input.placeholder = '週六半尖峰用電';
+                });
+                saturdaySemiPeakHeader.style.display = 'table-cell';
+            } else if (rateType === 'two-stage') {
+                semiPeakInputs.forEach(input => {
+                    input.disabled = true;
+                    input.value = '';
+                });
+                semiPeakHeader.style.display = 'none';
+                saturdaySemiPeakInputs.forEach(input => {
+                    input.disabled = false;
+                    input.placeholder = '週六半尖峰用電';
+                });
+                saturdaySemiPeakHeader.style.display = 'table-cell';
+            } else {
+                semiPeakInputs.forEach(input => {
+                    input.disabled = true;
+                    input.value = '';
+                });
+                semiPeakHeader.style.display = 'none';
+                saturdaySemiPeakInputs.forEach(input => {
+                    input.disabled = false;
+                    input.placeholder = '週六半尖峰用電';
+                });
+                saturdaySemiPeakHeader.style.display = 'table-cell';
+            }
+        });
+        
+        // 儲存客戶資料
+        function saveData() {
+            const customerId = document.getElementById('customer-id').value;
+            const customerName = document.getElementById('customer-name').value;
+            const powerType = document.getElementById('power-type').value;
+            const rateType = document.getElementById('rate-type').value;
+            const contractCapacity = document.getElementById('contract-capacity').value;
+            const pcsPower = document.getElementById('pcs-power').value;
+            const batteryCapacity = document.getElementById('battery-capacity').value;
+            const storageCost = document.getElementById('storage-cost').value;
+            
+            // 收集每月用電數據
+            const monthlyUsage = [];
+            const rows = document.querySelectorAll('#monthly-usage-body tr');
+            rows.forEach(row => {
+                const month = row.cells[0].textContent;
+                const peak = row.querySelector('.peak-usage').value || 0;
+                const semiPeak = row.querySelector('.semi-peak-usage').value || 0;
+                const offPeak = row.querySelector('.off-peak-usage').value || 0;
+                const saturdaySemiPeak = row.querySelector('.saturday-semi-peak-usage').value || 0;
+                
+                monthlyUsage.push({
+                    month,
+                    peak: parseInt(peak),
+                    semiPeak: parseInt(semiPeak),
+                    offPeak: parseInt(offPeak),
+                    saturdaySemiPeak: parseInt(saturdaySemiPeak)
+                });
+            });
+            
+            // 檢查是否已存在相同ID的客戶
+            const existingIndex = customers.findIndex(c => c.id === customerId);
+            const customerData = {
+                id: customerId,
+                name: customerName,
+                powerType,
+                rateType,
+                contractCapacity: parseInt(contractCapacity),
+                pcsPower: parseInt(pcsPower),
+                batteryCapacity: parseInt(batteryCapacity),
+                storageCost: parseInt(storageCost),
+                monthlyUsage,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (existingIndex >= 0) {
+                customers[existingIndex] = customerData;
+            } else {
+                customers.push(customerData);
+            }
+            
+            localStorage.setItem('customers', JSON.stringify(customers));
+            alert('客戶資料已儲存！');
+            refreshCustomerList();
+        }
+        
+        // 刷新客戶列表
+        function refreshCustomerList() {
+            const customerList = document.getElementById('customer-list');
+            customerList.innerHTML = '';
+            
+            if (customers.length === 0) {
+                customerList.innerHTML = '<p>沒有儲存的客戶資料</p>';
+                return;
+            }
+            
+            customers.forEach(customer => {
+                const item = document.createElement('div');
+                item.className = 'customer-item';
+                item.innerHTML = `
+                    <strong>${customer.id} - ${customer.name}</strong>
+                    <div>契約容量: ${customer.contractCapacity} kW</div>
+                    <div>電價模式: ${getRateTypeName(customer.rateType)}</div>
+                    <div>最後更新: ${new Date(customer.timestamp).toLocaleString()}</div>
+                `;
+                item.onclick = () => loadCustomerData(customer.id);
+                customerList.appendChild(item);
+            });
+        }
+        
+        // 取得電價模式名稱
+        function getRateTypeName(rateType) {
+            switch(rateType) {
+                case 'non-time': return '非時間電價';
+                case 'two-stage': return '時間電價(二段式)';
+                case 'three-stage': return '時間電價(三段式)';
+                default: return rateType;
+            }
+        }
+        
+        // 取得電力類別名稱
+        function getPowerTypeName(powerType) {
+            switch(powerType) {
+                case 'table-light': return '表燈';
+                case 'low-voltage': return '低壓電力';
+                case 'high-voltage': return '高壓電力';
+                case 'extra-high-voltage': return '特高壓電力';
+                default: return powerType;
+            }
+        }
+        
+        // 載入客戶資料
+        function loadCustomerData(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            if (!customer) return;
+            
+            document.getElementById('customer-id').value = customer.id;
+            document.getElementById('customer-name').value = customer.name;
+            document.getElementById('power-type').value = customer.powerType;
+            document.getElementById('rate-type').value = customer.rateType;
+            document.getElementById('contract-capacity').value = customer.contractCapacity;
+            document.getElementById('pcs-power').value = customer.pcsPower;
+            document.getElementById('battery-capacity').value = customer.batteryCapacity;
+            document.getElementById('storage-cost').value = customer.storageCost;
+            
+            // 載入每月用電數據
+            const rows = document.querySelectorAll('#monthly-usage-body tr');
+            customer.monthlyUsage.forEach((usage, index) => {
+                if (index < rows.length) {
+                    rows[index].querySelector('.peak-usage').value = usage.peak;
+                    rows[index].querySelector('.semi-peak-usage').value = usage.semiPeak;
+                    rows[index].querySelector('.off-peak-usage').value = usage.offPeak;
+                    
+                    // 如果有週六半尖峰用電數據，則載入
+                    if (usage.saturdaySemiPeak !== undefined) {
+                        rows[index].querySelector('.saturday-semi-peak-usage').value = usage.saturdaySemiPeak;
+                    }
+                }
+            });
+            
+            // 觸發電價模式變更以正確顯示/隱藏半尖峰欄位
+            document.getElementById('rate-type').dispatchEvent(new Event('change'));
+            
+            openTab('basic-info');
+        }
+        
+        // 搜尋客戶
+        function searchCustomers() {
+            const searchTerm = document.getElementById('search-customer').value.toLowerCase();
+            if (!searchTerm) {
+                refreshCustomerList();
+                return;
+            }
+            
+            const filtered = customers.filter(c => 
+                c.id.toLowerCase().includes(searchTerm) || 
+                c.name.toLowerCase().includes(searchTerm)
+            );
+            
+            const customerList = document.getElementById('customer-list');
+            customerList.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                customerList.innerHTML = '<p>沒有找到符合條件的客戶</p>';
+                return;
+            }
+            
+            filtered.forEach(customer => {
+                const item = document.createElement('div');
+                item.className = 'customer-item';
+                item.innerHTML = `
+                    <strong>${customer.id} - ${customer.name}</strong>
+                    <div>契約容量: ${customer.contractCapacity} kW</div>
+                    <div>電價模式: ${getRateTypeName(customer.rateType)}</div>
+                `;
+                item.onclick = () => loadCustomerData(customer.id);
+                customerList.appendChild(item);
+            });
+        }
+        
+        // 載入電價設定
+        function loadRateConfig() {
+            const powerType = document.getElementById('rate-config-type').value;
+            const config = rateConfigs[powerType] || {};
+            
+            document.getElementById('summer-base-rate').value = config.summerBaseRate || '236.20';
+            document.getElementById('non-summer-base-rate').value = config.nonSummerBaseRate || '173.20';
+            document.getElementById('non-summer-contract-rate').value = config.nonSummerContractRate || '173.20';
+            document.getElementById('summer-peak-rate').value = config.summerPeakRate || '5.42';
+            document.getElementById('non-summer-peak-rate').value = config.nonSummerPeakRate || '4.42';
+            document.getElementById('summer-semi-peak-rate').value = config.summerSemiPeakRate || '3.24';
+            document.getElementById('non-summer-semi-peak-rate').value = config.nonSummerSemiPeakRate || '3.18';
+            document.getElementById('summer-off-peak-rate').value = config.summerOffPeakRate || '1.39';
+            document.getElementById('non-summer-off-peak-rate').value = config.nonSummerOffPeakRate || '1.33';
+            document.getElementById('summer-saturday-semi-peak-rate').value = config.summerSaturdaySemiPeakRate || '3.24';
+            document.getElementById('non-summer-saturday-semi-peak-rate').value = config.nonSummerSaturdaySemiPeakRate || '3.18';
+        }
+        
+        // 儲存電價設定
+        function saveRateConfig() {
+            const powerType = document.getElementById('rate-config-type').value;
+            
+            rateConfigs[powerType] = {
+                summerBaseRate: parseFloat(document.getElementById('summer-base-rate').value),
+                nonSummerBaseRate: parseFloat(document.getElementById('non-summer-base-rate').value),
+                nonSummerContractRate: parseFloat(document.getElementById('non-summer-contract-rate').value),
+                summerPeakRate: parseFloat(document.getElementById('summer-peak-rate').value),
+                nonSummerPeakRate: parseFloat(document.getElementById('non-summer-peak-rate').value),
+                summerSemiPeakRate: parseFloat(document.getElementById('summer-semi-peak-rate').value),
+                nonSummerSemiPeakRate: parseFloat(document.getElementById('non-summer-semi-peak-rate').value),
+                summerOffPeakRate: parseFloat(document.getElementById('summer-off-peak-rate').value),
+                nonSummerOffPeakRate: parseFloat(document.getElementById('non-summer-off-peak-rate').value),
+                summerSaturdaySemiPeakRate: parseFloat(document.getElementById('summer-saturday-semi-peak-rate').value),
+                nonSummerSaturdaySemiPeakRate: parseFloat(document.getElementById('non-summer-saturday-semi-peak-rate').value)
+            };
+            
+            localStorage.setItem('rateConfigs', JSON.stringify(rateConfigs));
+            alert('電價設定已儲存！');
+        }
+        
+        // 載入預設電價
+        function loadDefaultRates() {
+            if (confirm('確定要載入預設電價嗎？這將覆蓋當前設定。')) {
+                const powerType = document.getElementById('rate-config-type').value;
+                
+                // 根據不同電力類別設定預設值
+                if (powerType === 'low-voltage') {
+                    document.getElementById('summer-base-rate').value = '236.20';
+                    document.getElementById('non-summer-base-rate').value = '173.20';
+                    document.getElementById('non-summer-contract-rate').value = '173.20';
+                    document.getElementById('summer-peak-rate').value = '5.42';
+                    document.getElementById('non-summer-peak-rate').value = '4.42';
+                    document.getElementById('summer-semi-peak-rate').value = '3.24';
+                    document.getElementById('non-summer-semi-peak-rate').value = '3.18';
+                    document.getElementById('summer-off-peak-rate').value = '1.39';
+                    document.getElementById('non-summer-off-peak-rate').value = '1.33';
+                    document.getElementById('summer-saturday-semi-peak-rate').value = '3.24';
+                    document.getElementById('non-summer-saturday-semi-peak-rate').value = '3.18';
+                } else if (powerType === 'high-voltage') {
+                    // 高壓電力預設值
+                    document.getElementById('summer-base-rate').value = '223.60';
+                    document.getElementById('non-summer-base-rate').value = '166.90';
+                    document.getElementById('non-summer-contract-rate').value = '166.90';
+                    document.getElementById('summer-peak-rate').value = '3.13';
+                    document.getElementById('non-summer-peak-rate').value = '3.03';
+                    document.getElementById('summer-semi-peak-rate').value = '2.16';
+                    document.getElementById('non-summer-semi-peak-rate').value = '2.10';
+                    document.getElementById('summer-off-peak-rate').value = '1.35';
+                    document.getElementById('non-summer-off-peak-rate').value = '1.26';
+                    document.getElementById('summer-saturday-semi-peak-rate').value = '2.16';
+                    document.getElementById('non-summer-saturday-semi-peak-rate').value = '2.10';
+                } else if (powerType === 'extra-high-voltage') {
+                    // 特高壓電力預設值
+                    document.getElementById('summer-base-rate').value = '217.30';
+                    document.getElementById('non-summer-base-rate').value = '160.60';
+                    document.getElementById('non-summer-contract-rate').value = '160.60';
+                    document.getElementById('summer-peak-rate').value = '3.04';
+                    document.getElementById('non-summer-peak-rate').value = '2.94';
+                    document.getElementById('summer-semi-peak-rate').value = '2.10';
+                    document.getElementById('non-summer-semi-peak-rate').value = '2.04';
+                    document.getElementById('summer-off-peak-rate').value = '1.31';
+                    document.getElementById('non-summer-off-peak-rate').value = '1.22';
+                    document.getElementById('summer-saturday-semi-peak-rate').value = '2.10';
+                    document.getElementById('non-summer-saturday-semi-peak-rate').value = '2.04';
+                }
+                
+                alert('預設電價已載入！');
+            }
+        }
+        
+        // 計算所有分析
+        function calculateAll() {
+            // 更新儲能系統顯示值
+            document.getElementById('display-pcs-power').textContent = 
+                `${document.getElementById('pcs-power').value} kW`;
+            document.getElementById('display-battery-capacity').textContent = 
+                `${document.getElementById('battery-capacity').value} kWh`;
+            document.getElementById('display-storage-cost').textContent = 
+                `${parseInt(document.getElementById('storage-cost').value).toLocaleString()} 元`;
+            
+            // 更新當前方案標題
+            const currentRateType = document.getElementById('rate-type').value;
+            const currentPowerType = document.getElementById('power-type').value;
+            document.getElementById('current-scheme-header').textContent = 
+                `當前方案 (${getPowerTypeName(currentPowerType)} ${getRateTypeName(currentRateType)})`;
+            
+            // 設置替代方案標題
+            document.getElementById('alt1-scheme-header').textContent = 
+                '替代方案1 (低壓電力 非時間電價)';
+            document.getElementById('alt2-scheme-header').textContent = 
+                '替代方案2 (高壓電力 時間電價二段式)';
+            
+            calculateBillComparison();
+            calculateContractOptimization();
+            calculateStorageAnalysis();
+            alert('所有分析計算完成！');
+        }
+        
+        // 電費比較計算
+        function calculateBillComparison() {
+            const contractCapacity = parseInt(document.getElementById('contract-capacity').value) || 0;
+            const powerType = document.getElementById('power-type').value;
+            const config = rateConfigs[powerType] || {};
+            
+            // 收集所有月份的用電數據
+            let totalSummerPeak = 0, totalSummerOffPeak = 0, totalSummerSemiPeak = 0, totalSummerSaturdaySemiPeak = 0;
+            let totalNonSummerPeak = 0, totalNonSummerOffPeak = 0, totalNonSummerSemiPeak = 0, totalNonSummerSaturdaySemiPeak = 0;
+            
+            const rows = document.querySelectorAll('#monthly-usage-body tr');
+            rows.forEach((row, index) => {
+                const month = index + 1; // 1-12月
+                const isSummer = month >= 6 && month <= 9; // 6-9月為夏月
+                
+                const peak = parseInt(row.querySelector('.peak-usage').value) || 0;
+                const offPeak = parseInt(row.querySelector('.off-peak-usage').value) || 0;
+                const semiPeak = parseInt(row.querySelector('.semi-peak-usage').value) || 0;
+                const saturdaySemiPeak = parseInt(row.querySelector('.saturday-semi-peak-usage').value) || 0;
+                
+                if (isSummer) {
+                    totalSummerPeak += peak;
+                    totalSummerOffPeak += offPeak;
+                    totalSummerSemiPeak += semiPeak;
+                    totalSummerSaturdaySemiPeak += saturdaySemiPeak;
+                } else {
+                    totalNonSummerPeak += peak;
+                    totalNonSummerOffPeak += offPeak;
+                    totalNonSummerSemiPeak += semiPeak;
+                    totalNonSummerSaturdaySemiPeak += saturdaySemiPeak;
+                }
+            });
+            
+            // 計算當前方案電費
+            const currentRateType = document.getElementById('rate-type').value;
+            let currentSummerBase = 0, currentNonSummerBase = 0;
+            let currentSummerFlow = 0, currentNonSummerFlow = 0;
+            
+            if (currentRateType === 'non-time') {
+                // 非時間電價計算
+                currentSummerBase = contractCapacity * (config.summerBaseRate || 236.20);
+                currentNonSummerBase = contractCapacity * (config.nonSummerBaseRate || 173.20);
+                
+                // 簡化計算，實際應按用電度數分段計算
+                currentSummerFlow = (totalSummerPeak + totalSummerSemiPeak + totalSummerOffPeak + totalSummerSaturdaySemiPeak) * (config.summerPeakRate || 5.42);
+                currentNonSummerFlow = (totalNonSummerPeak + totalNonSummerSemiPeak + totalNonSummerOffPeak + totalNonSummerSaturdaySemiPeak) * (config.nonSummerPeakRate || 4.42);
+            } else if (currentRateType === 'two-stage') {
+                // 二段式時間電價計算
+                currentSummerBase = contractCapacity * (config.summerBaseRate || 236.20);
+                currentNonSummerBase = contractCapacity * (config.nonSummerBaseRate || 173.20);
+                
+                currentSummerFlow = (totalSummerPeak * (config.summerPeakRate || 5.42)) + 
+                                  (totalSummerOffPeak * (config.summerOffPeakRate || 1.39)) +
+                                  (totalSummerSaturdaySemiPeak * (config.summerSaturdaySemiPeakRate || 3.24));
+                
+                currentNonSummerFlow = (totalNonSummerPeak * (config.nonSummerPeakRate || 4.42)) + 
+                                     (totalNonSummerOffPeak * (config.nonSummerOffPeakRate || 1.33)) +
+                                     (totalNonSummerSaturdaySemiPeak * (config.nonSummerSaturdaySemiPeakRate || 3.18));
+            } else {
+                // 三段式時間電價計算
+                currentSummerBase = contractCapacity * (config.summerBaseRate || 236.20);
+                currentNonSummerBase = contractCapacity * (config.nonSummerBaseRate || 173.20);
+                
+                currentSummerFlow = (totalSummerPeak * (config.summerPeakRate || 5.42)) + 
+                                  (totalSummerSemiPeak * (config.summerSemiPeakRate || 3.24)) + 
+                                  (totalSummerOffPeak * (config.summerOffPeakRate || 1.39)) +
+                                  (totalSummerSaturdaySemiPeak * (config.summerSaturdaySemiPeakRate || 3.24));
+                
+                currentNonSummerFlow = (totalNonSummerPeak * (config.nonSummerPeakRate || 4.42)) + 
+                                     (totalNonSummerSemiPeak * (config.nonSummerSemiPeakRate || 3.18)) + 
+                                     (totalNonSummerOffPeak * (config.nonSummerOffPeakRate || 1.33)) +
+                                     (totalNonSummerSaturdaySemiPeak * (config.nonSummerSaturdaySemiPeakRate || 3.18));
+            }
+            
+            // 更新顯示
+            document.getElementById('current-base-summer').textContent = `${Math.round(currentSummerBase).toLocaleString()} 元`;
+            document.getElementById('current-base-non-summer').textContent = `${Math.round(currentNonSummerBase).toLocaleString()} 元`;
+            document.getElementById('current-flow-summer').textContent = `${Math.round(currentSummerFlow).toLocaleString()} 元`;
+            document.getElementById('current-flow-non-summer').textContent = `${Math.round(currentNonSummerFlow).toLocaleString()} 元`;
+            document.getElementById('current-total').textContent = `${Math.round(currentSummerBase * 4 + currentNonSummerBase * 8 + currentSummerFlow + currentNonSummerFlow).toLocaleString()} 元`;
+            
+            // 模擬計算替代方案1 (低壓電力 非時間電價)
+            const alt1Config = rateConfigs['low-voltage'] || {};
+            const alt1SummerBase = contractCapacity * (alt1Config.summerBaseRate || 236.20) * 0.9;
+            const alt1NonSummerBase = contractCapacity * (alt1Config.nonSummerBaseRate || 173.20) * 0.9;
+            const alt1SummerFlow = (totalSummerPeak + totalSummerSemiPeak + totalSummerOffPeak + totalSummerSaturdaySemiPeak) * (alt1Config.summerPeakRate || 5.42);
+            const alt1NonSummerFlow = (totalNonSummerPeak + totalNonSummerSemiPeak + totalNonSummerOffPeak + totalNonSummerSaturdaySemiPeak) * (alt1Config.nonSummerPeakRate || 4.42);
+            
+            document.getElementById('alt1-base-summer').textContent = `${Math.round(alt1SummerBase).toLocaleString()} 元`;
+            document.getElementById('alt1-base-non-summer').textContent = `${Math.round(alt1NonSummerBase).toLocaleString()} 元`;
+            document.getElementById('alt1-flow-summer').textContent = `${Math.round(alt1SummerFlow).toLocaleString()} 元`;
+            document.getElementById('alt1-flow-non-summer').textContent = `${Math.round(alt1NonSummerFlow).toLocaleString()} 元`;
+            document.getElementById('alt1-total').textContent = `${Math.round(alt1SummerBase * 4 + alt1NonSummerBase * 8 + alt1SummerFlow + alt1NonSummerFlow).toLocaleString()} 元`;
+            document.getElementById('alt1-saving').textContent = `${Math.round(
+                (currentSummerBase * 4 + currentNonSummerBase * 8 + currentSummerFlow + currentNonSummerFlow) -
+                (alt1SummerBase * 4 + alt1NonSummerBase * 8 + alt1SummerFlow + alt1NonSummerFlow)
+            ).toLocaleString()} 元`;
+            
+            // 模擬計算替代方案2 (高壓電力 時間電價二段式)
+            const alt2Config = rateConfigs['high-voltage'] || {};
+            const alt2SummerBase = contractCapacity * (alt2Config.summerBaseRate || 223.60) * 1.1;
+            const alt2NonSummerBase = contractCapacity * (alt2Config.nonSummerBaseRate || 166.90) * 1.1;
+            const alt2SummerFlow = (totalSummerPeak * (alt2Config.summerPeakRate || 3.13)) + 
+                                  (totalSummerOffPeak * (alt2Config.summerOffPeakRate || 1.35)) +
+                                  (totalSummerSaturdaySemiPeak * (alt2Config.summerSaturdaySemiPeakRate || 2.16));
+            const alt2NonSummerFlow = (totalNonSummerPeak * (alt2Config.nonSummerPeakRate || 3.03)) + 
+                                     (totalNonSummerOffPeak * (alt2Config.nonSummerOffPeakRate || 1.26)) +
+                                     (totalNonSummerSaturdaySemiPeak * (alt2Config.nonSummerSaturdaySemiPeakRate || 2.10));
+            
+            document.getElementById('alt2-base-summer').textContent = `${Math.round(alt2SummerBase).toLocaleString()} 元`;
+            document.getElementById('alt2-base-non-summer').textContent = `${Math.round(alt2NonSummerBase).toLocaleString()} 元`;
+            document.getElementById('alt2-flow-summer').textContent = `${Math.round(alt2SummerFlow).toLocaleString()} 元`;
+            document.getElementById('alt2-flow-non-summer').textContent = `${Math.round(alt2NonSummerFlow).toLocaleString()} 元`;
+            document.getElementById('alt2-total').textContent = `${Math.round(alt2SummerBase * 4 + alt2NonSummerBase * 8 + alt2SummerFlow + alt2NonSummerFlow).toLocaleString()} 元`;
+            document.getElementById('alt2-saving').textContent = `${Math.round(
+                (currentSummerBase * 4 + currentNonSummerBase * 8 + currentSummerFlow + currentNonSummerFlow) -
+                (alt2SummerBase * 4 + alt2NonSummerBase * 8 + alt2SummerFlow + alt2NonSummerFlow)
+            ).toLocaleString()} 元`;
+            
+            // 模擬計算儲能方案
+            const storageCapacityReduction = Math.min(
+                parseInt(document.getElementById('pcs-power').value || 125), 
+                contractCapacity * 0.2
+            ); // 最多減少PCS功率或20%契約容量
+            
+            const storageSummerBase = (contractCapacity - storageCapacityReduction) * (config.summerBaseRate || 236.20);
+            const storageNonSummerBase = (contractCapacity - storageCapacityReduction) * (config.nonSummerBaseRate || 173.20);
+            
+            // 儲能系統可將部分尖峰用電轉移到離峰時段
+            const batteryCapacity = parseInt(document.getElementById('battery-capacity').value) || 261;
+            const dailyShift = Math.min(batteryCapacity, totalSummerPeak / 120); // 假設夏月120天
+            
+            let storageSummerFlow = 0, storageNonSummerFlow = 0;
+            
+            if (currentRateType === 'non-time') {
+                // 非時間電價計算
+                storageSummerFlow = (totalSummerPeak + totalSummerSemiPeak + totalSummerOffPeak + totalSummerSaturdaySemiPeak) * (config.summerPeakRate || 5.42) * 0.9;
+                storageNonSummerFlow = (totalNonSummerPeak + totalNonSummerSemiPeak + totalNonSummerOffPeak + totalNonSummerSaturdaySemiPeak) * (config.nonSummerPeakRate || 4.42) * 0.9;
+            } else if (currentRateType === 'two-stage') {
+                // 二段式時間電價計算
+                storageSummerFlow = ((totalSummerPeak - dailyShift * 120) * (config.summerPeakRate || 5.42)) + 
+                                  ((totalSummerOffPeak + dailyShift * 120) * (config.summerOffPeakRate || 1.39)) +
+                                  (totalSummerSaturdaySemiPeak * (config.summerSaturdaySemiPeakRate || 3.24));
+                
+                storageNonSummerFlow = (totalNonSummerPeak * (config.nonSummerPeakRate || 4.42)) + 
+                                     (totalNonSummerOffPeak * (config.nonSummerOffPeakRate || 1.33)) +
+                                     (totalNonSummerSaturdaySemiPeak * (config.nonSummerSaturdaySemiPeakRate || 3.18));
+            } else {
+                // 三段式時間電價計算
+                storageSummerFlow = ((totalSummerPeak - dailyShift * 120) * (config.summerPeakRate || 5.42)) + 
+                                  (totalSummerSemiPeak * (config.summerSemiPeakRate || 3.24)) + 
+                                  ((totalSummerOffPeak + dailyShift * 120) * (config.summerOffPeakRate || 1.39)) +
+                                  (totalSummerSaturdaySemiPeak * (config.summerSaturdaySemiPeakRate || 3.24));
+                
+                storageNonSummerFlow = (totalNonSummerPeak * (config.nonSummerPeakRate || 4.42)) + 
+                                     (totalNonSummerSemiPeak * (config.nonSummerSemiPeakRate || 3.18)) + 
+                                     (totalNonSummerOffPeak * (config.nonSummerOffPeakRate || 1.33)) +
+                                     (totalNonSummerSaturdaySemiPeak * (config.nonSummerSaturdaySemiPeakRate || 3.18));
+            }
+            
+            document.getElementById('storage-base-summer').textContent = `${Math.round(storageSummerBase).toLocaleString()} 元`;
+            document.getElementById('storage-base-non-summer').textContent = `${Math.round(storageNonSummerBase).toLocaleString()} 元`;
+            document.getElementById('storage-flow-summer').textContent = `${Math.round(storageSummerFlow).toLocaleString()} 元`;
+            document.getElementById('storage-flow-non-summer').textContent = `${Math.round(storageNonSummerFlow).toLocaleString()} 元`;
+            document.getElementById('storage-total').textContent = `${Math.round(storageSummerBase * 4 + storageNonSummerBase * 8 + storageSummerFlow + storageNonSummerFlow).toLocaleString()} 元`;
+            document.getElementById('storage-saving').textContent = `${Math.round(
+                (currentSummerBase * 4 + currentNonSummerBase * 8 + currentSummerFlow + currentNonSummerFlow) -
+                (storageSummerBase * 4 + storageNonSummerBase * 8 + storageSummerFlow + storageNonSummerFlow)
+            ).toLocaleString()} 元`;
+        }
+        
+        // 契約容量優化計算
+        function calculateContractOptimization() {
+            const currentCapacity = parseInt(document.getElementById('contract-capacity').value) || 0;
+            const powerType = document.getElementById('power-type').value;
+            const config = rateConfigs[powerType] || {};
+            
+            const tableBody = document.querySelector('#contract-optimization-table tbody');
+            tableBody.innerHTML = '';
+            
+            // 生成容量選項 (當前容量的±10%, ±20%, ±30%)
+            const options = [
+                currentCapacity * 0.7,
+                currentCapacity * 0.8,
+                currentCapacity * 0.9,
+                currentCapacity,
+                currentCapacity * 1.1,
+                currentCapacity * 1.2,
+                currentCapacity * 1.3
+            ].map(cap => Math.round(cap));
+            
+            // 確保選項是唯一的且不小於10kW
+            const uniqueOptions = [...new Set(options)].filter(cap => cap >= 10);
+            
+            uniqueOptions.forEach((capacity, index) => {
+                const isCurrent = capacity === currentCapacity;
+                const summerBase = Math.round(capacity * (config.summerBaseRate || 236.20));
+                const nonSummerBase = Math.round(capacity * (config.nonSummerBaseRate || 173.20));
+                
+                // 簡單風險評估
+                let risk = '低';
+                let rating = '★★★★';
+                if (capacity < currentCapacity * 0.9) {
+                    risk = '高';
+                    rating = '★★☆';
+                } else if (capacity < currentCapacity) {
+                    risk = '中';
+                    rating = '★★★☆';
+                } else if (capacity > currentCapacity * 1.1) {
+                    rating = '★★★';
+                }
+                
+                const row = document.createElement('tr');
+                if (isCurrent) {
+                    row.style.backgroundColor = '#e6f7ff';
+                }
+                row.innerHTML = `
+                    <td>${capacity} kW ${isCurrent ? '(當前)' : ''}</td>
+                    <td>${summerBase.toLocaleString()} 元</td>
+                    <td>${nonSummerBase.toLocaleString()} 元</td>
+                    <td>${risk}</td>
+                    <td>${Math.round(summerBase * 4 + nonSummerBase * 8).toLocaleString()} 元</td>
+                    <td>${rating}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 儲能系統分析計算
+        function calculateStorageAnalysis() {
+            const currentCapacity = parseInt(document.getElementById('contract-capacity').value) || 0;
+            const powerType = document.getElementById('power-type').value;
+            const config = rateConfigs[powerType] || {};
+            const pcsPower = parseInt(document.getElementById('pcs-power').value) || 125;
+            const batteryCapacity = parseInt(document.getElementById('battery-capacity').value) || 261;
+            const storageCost = parseInt(document.getElementById('storage-cost').value) || 1600000;
+            
+            // 收集用電數據
+            let totalSummerPeak = 0, totalSummerOffPeak = 0;
+            const rows = document.querySelectorAll('#monthly-usage-body tr');
+            rows.forEach((row, index) => {
+                const month = index + 1;
+                if (month >= 6 && month <= 9) { // 夏月
+                    totalSummerPeak += parseInt(row.querySelector('.peak-usage').value) || 0;
+                    totalSummerOffPeak += parseInt(row.querySelector('.off-peak-usage').value) || 0;
+                }
+            });
+            
+            // 削峰填谷節省 (假設每天使用全部容量)
+            const dailyShift = Math.min(batteryCapacity, totalSummerPeak / 120); // 夏月120天
+            const dailySaving = dailyShift * ((config.summerPeakRate || 5.42) - (config.summerOffPeakRate || 1.39));
+            const yearlyPeakShaving = Math.round(dailySaving * 120); // 夏月120天
+            
+            // 契約容量優化節省 (最多減少PCS功率或20%契約容量)
+            const capacityReduction = Math.min(pcsPower, currentCapacity * 0.2);
+            const yearlyContractSaving = Math.round(
+                capacityReduction * ((config.summerBaseRate || 236.20) * 4 + (config.nonSummerBaseRate || 173.20) * 8)
+            );
+            
+            const totalYearlySaving = yearlyPeakShaving + yearlyContractSaving;
+            const paybackYears = (storageCost / totalYearlySaving).toFixed(1);
+            
+            document.getElementById('peak-shaving-saving').textContent = `${yearlyPeakShaving.toLocaleString()} 元/年`;
+            document.getElementById('contract-optim-saving').textContent = `${yearlyContractSaving.toLocaleString()} 元/年`;
+            document.getElementById('total-year-saving').textContent = `${totalYearlySaving.toLocaleString()} 元/年`;
+            document.getElementById('payback-period').textContent = `${paybackYears} 年`;
+        }
+        
+        // 匯出資料
+        function exportData() {
+            const data = {
+                customers: customers,
+                rateConfigs: rateConfigs
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `電費分析資料_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 匯入資料
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.customers && data.rateConfigs) {
+                            if (confirm('確定要匯入資料嗎？這將覆蓋當前所有資料。')) {
+                                customers = data.customers;
+                                rateConfigs = data.rateConfigs;
+                                localStorage.setItem('customers', JSON.stringify(customers));
+                                localStorage.setItem('rateConfigs', JSON.stringify(rateConfigs));
+                                alert('資料匯入成功！');
+                                refreshCustomerList();
+                            }
+                        } else {
+                            alert('無效的資料格式！');
+                        }
+                    } catch (error) {
+                        alert('資料解析錯誤：' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        
+        // 清除所有資料
+        function clearAllData() {
+            if (confirm('確定要清除所有資料嗎？此操作無法復原！')) {
+                localStorage.removeItem('customers');
+                localStorage.removeItem('rateConfigs');
+                customers = [];
+                rateConfigs = {};
+                refreshCustomerList();
+                alert('所有資料已清除！');
+            }
+        }
+        
+        // 頁面載入時初始化
+        window.onload = function() {
+            initMonthlyUsageTable();
+            
+            // 觸發電價模式變更事件
+            document.getElementById('rate-type').dispatchEvent(new Event('change'));
+            
+            // 載入客戶列表
+            refreshCustomerList();
+        };
+    </script>
+</body>
+</html>
